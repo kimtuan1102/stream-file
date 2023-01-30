@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Request } from 'express';
+import * as ExcelJS from 'exceljs';
 
 @Controller()
 export class AppController {
@@ -21,12 +22,15 @@ export class AppController {
     return new Promise((resolve, reject) => {
       req.pipe(req['busboy']); // Pipe it trough busboy
 
-      req['busboy'].on('file', (fieldname, file, filename) => {
+      req['busboy'].on('file', async (fieldname, file, filename) => {
         console.log(filename);
         console.log(fieldname);
-        file.on('data', (chunk) => {
-
-        });
+        const workbookReader = new ExcelJS.stream.xlsx.WorkbookReader(file, {});
+        for await (const worksheetReader of workbookReader) {
+          for await (const row of worksheetReader) {
+            console.log('Raw text:\n' + row.values);
+          }
+        }
         file.on('close', () => {
           return { ok: true };
         });
