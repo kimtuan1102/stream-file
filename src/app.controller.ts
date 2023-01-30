@@ -25,6 +25,7 @@ export class AppController {
       req['busboy'].on('file', async (fieldname, file, filename) => {
         console.log(filename);
         console.log(fieldname);
+        reject({ x: 1 });
         const workbookReader = new ExcelJS.stream.xlsx.WorkbookReader(file, {});
         for await (const worksheetReader of workbookReader) {
           for await (const row of worksheetReader) {
@@ -32,9 +33,15 @@ export class AppController {
           }
         }
         file.on('close', () => {
-          return { ok: true };
+          resolve({ ok: true });
         });
       });
-    });
+    })
+      .then(() => {
+        return { ok: true };
+      })
+      .catch((e) => {
+        throw new BadRequestException({ x: 1 });
+      });
   }
 }
